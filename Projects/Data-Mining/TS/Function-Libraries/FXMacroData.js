@@ -3,6 +3,7 @@ exports.newDataMiningFunctionLibrariesFXMacroData = function () {
 
     let thisObject = {
         buildUrl: buildUrl,
+        requestHeaders: requestHeaders,
         dataCatalogue: dataCatalogue,
         announcements: announcements,
         latestAnnouncements: latestAnnouncements,
@@ -19,7 +20,14 @@ exports.newDataMiningFunctionLibrariesFXMacroData = function () {
 
     return thisObject
 
-    function buildUrl(path, params, apiKey, baseUrl) {
+    /*
+    History endpoints (announcements, predictions, forex, cot, commodities,
+    risk sentiment) return 20 rows by default and at most 100 per request,
+    newest first. Pass { limit: 100, offset: n } in params and follow
+    pagination.next_offset while pagination.has_more is true.
+    The API key is sent as a header (see requestHeaders), never in the URL.
+    */
+    function buildUrl(path, params, baseUrl) {
         let url = new URL(path.replace(/^\/+/, ''), baseUrl || DEFAULT_BASE_URL)
         let queryParams = params || {}
 
@@ -29,97 +37,93 @@ exports.newDataMiningFunctionLibrariesFXMacroData = function () {
             }
         }
 
-        if (apiKey !== undefined && apiKey !== '') {
-            url.searchParams.set('api_key', apiKey)
-        }
-
         return url.toString()
     }
 
-    function dataCatalogue(currency, apiKey, baseUrl) {
+    function requestHeaders(apiKey) {
+        let headers = { Accept: 'application/json' }
+        if (apiKey !== undefined && apiKey !== null && apiKey !== '') {
+            headers['X-API-Key'] = apiKey
+        }
+        return headers
+    }
+
+    function dataCatalogue(currency, baseUrl) {
         return buildUrl(
             'data_catalogue/' + normalizeCurrency(currency),
             undefined,
-            apiKey,
             baseUrl
         )
     }
 
-    function announcements(currency, indicator, params, apiKey, baseUrl) {
+    function announcements(currency, indicator, params, baseUrl) {
         return buildUrl(
             'announcements/' + normalizeCurrency(currency) + '/' + indicator,
             params,
-            apiKey,
             baseUrl
         )
     }
 
-    function latestAnnouncements(currency, params, apiKey, baseUrl) {
+    function latestAnnouncements(currency, params, baseUrl) {
         return buildUrl(
             'announcements/' + normalizeCurrency(currency) + '/latest',
             params,
-            apiKey,
             baseUrl
         )
     }
 
-    function calendar(currency, params, apiKey, baseUrl) {
+    function calendar(currency, params, baseUrl) {
         return buildUrl(
             'calendar/' + normalizeCurrency(currency),
             params,
-            apiKey,
             baseUrl
         )
     }
 
-    function predictions(currency, indicator, params, apiKey, baseUrl) {
+    function predictions(currency, indicator, params, baseUrl) {
         return buildUrl(
             'predictions/' + normalizeCurrency(currency) + '/' + indicator,
             params,
-            apiKey,
             baseUrl
         )
     }
 
-    function forex(base, quote, params, apiKey, baseUrl) {
+    function forex(base, quote, params, baseUrl) {
         return buildUrl(
             'forex/' + normalizeCurrency(base) + '/' + normalizeCurrency(quote),
             params,
-            apiKey,
             baseUrl
         )
     }
 
-    function cot(currency, params, apiKey, baseUrl) {
+    function cot(currency, params, baseUrl) {
         return buildUrl(
             'cot/' + normalizeCurrency(currency),
             params,
-            apiKey,
             baseUrl
         )
     }
 
-    function commodity(indicator, params, apiKey, baseUrl) {
-        return buildUrl('commodities/' + indicator, params, apiKey, baseUrl)
+    function commodity(indicator, params, baseUrl) {
+        return buildUrl('commodities/' + indicator, params, baseUrl)
     }
 
-    function commoditiesLatest(params, apiKey, baseUrl) {
-        return buildUrl('commodities/latest', params, apiKey, baseUrl)
+    function commoditiesLatest(params, baseUrl) {
+        return buildUrl('commodities/latest', params, baseUrl)
     }
 
-    function marketSessions(params, apiKey, baseUrl) {
-        return buildUrl('market_sessions', params, apiKey, baseUrl)
+    function marketSessions(params, baseUrl) {
+        return buildUrl('market_sessions', params, baseUrl)
     }
 
-    function riskSentiment(params, apiKey, baseUrl) {
-        return buildUrl('risk_sentiment', params, apiKey, baseUrl)
+    function riskSentiment(params, baseUrl) {
+        return buildUrl('risk_sentiment', params, baseUrl)
     }
 
-    function pressReleases(currency, params, apiKey, baseUrl) {
+    function pressReleases(currency, params, baseUrl) {
         return buildUrl(
             'press-releases/' + normalizeCurrency(currency),
             params,
-            apiKey,
             baseUrl
         )
     }
